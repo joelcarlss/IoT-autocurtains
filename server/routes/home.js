@@ -4,8 +4,4 @@ module.exports = (server, local, eventHandler) => {
         res.send(response)
         next()
     })
-    server.get('/things', async (req, res, next) => {
-        res.send('connected things')
-        next()
-    })
 }

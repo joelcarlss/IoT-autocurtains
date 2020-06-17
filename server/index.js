@@ -6,10 +6,7 @@ const port = process.env.PORT || 3000
 const bodyParser = require('body-parser')
 var cors = require('cors')
 const requests = require('./utils/requests')
-// const Hue = require('./model/Hue')
-const IpGeolocation = require('./model/Unit')
-const Unit = require('./model/Unit')
-const unit = new Unit()
+const things = require('./routes/things')
 
 const app = express()
 
@@ -27,10 +24,10 @@ app.use(helmet())
 
 // const hue = new Hue()
 // hue.connect()
-requests.get('https://api.ipify.org?format=json').then(({ ip }) => unit.setIp(ip))
 
 // routes
 require('./routes/home')(app)
+app.use('/things', things)
 
 
 app.listen(port || 3000, () => {
