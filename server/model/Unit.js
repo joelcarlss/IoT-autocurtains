@@ -3,7 +3,6 @@ const { get } = require('../utils/requests')
 class Unit {
     constructor(goDown) {
         this.geoUrl = "https://api.ipgeolocation.io/astronomy"
-        // this.weatherUrl = 'https://api.openweathermap.org/data/2.5/weather'
         this.weatherUrl = 'https://api.openweathermap.org/data/2.5/onecall'
         this.geoApiKey = process.env.IPGEOLOKATION_API_KEY
         this.weatherApiKey = process.env.OPENWEATHER_API_KEY
@@ -48,6 +47,7 @@ class Unit {
                 return { weather, clouds }
             })
             this.weather = weather
+            console.log(weather)
         }
     }
 }
