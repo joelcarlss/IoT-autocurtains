@@ -3,11 +3,13 @@ const { Route } = require('express')
 const app = express.Router()
 
 const controller = require('../controllers/things')
+
 app.get('/', async (req, res, next) => {
     let response = 'Welcome to things'
     res.send(response)
     next()
 })
+
 app.get('/connect', async (req, res, next) => {
     let response = 'Welcome to things connect'
     res.send(response)
