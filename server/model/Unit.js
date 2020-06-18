@@ -1,27 +1,33 @@
 require('dotenv').config()
-const { get } = require('../utils/requests')
+const { get, getGeoByIp, getGeoByLatLon, getWeatherByLatLon } = require('../utils/requests')
 class Unit {
-    constructor(goDown) {
-        this.geoUrl = "https://api.ipgeolocation.io/astronomy"
-        this.weatherUrl = 'https://api.openweathermap.org/data/2.5/onecall'
-        this.geoApiKey = process.env.IPGEOLOKATION_API_KEY
-        this.weatherApiKey = process.env.OPENWEATHER_API_KEY
+    constructor(goDown = true) {
         this.ip = undefined
         this.goDown = goDown
+        this.latLon = {}
         this.geoData = {}
-        this.weather = {}
+        this.weather = []
+        this.currentWeather = {}
+        this.milliseconds = 1800000
+        this.autoInterval = undefined
+        this.clock = undefined
     }
-    setGoDown(goDownBolean) {
-        this.goDown = goDownBolean
+    setMinutes(min) {
+        this.milliseconds = min * 60000
+    }
+    getMinutes() {
+        this.milliseconds = min / 60000
     }
     async setIp(ipAdress) {
-        let data = await get(`${this.geoUrl}?apiKey=${this.geoApiKey}&ip=${ipAdress}`)
+        let data = await getGeoByIp(ipAdress)
         if (data) {
             this.ip = ipAdress
-            this.updateData()
         } else {
             throw Error('Invalid Ip')
         }
+    }
+    async setLatLon(lat, lon) {
+        this.latLon = { lat, lon }
     }
     getIp() {
         return this.ip
@@ -30,26 +36,55 @@ class Unit {
         return this.geoData
     }
     async updateData() {
-        if (this.ip) {
-            this.geoData = await get(`${this.geoUrl}?apiKey=${this.geoApiKey}&ip=${this.ip}`)
-            console.log(this.geoData)
-            this.setWeather()
+        if (this.latLon.lat && this.latLon.lon) {
+            this.geoData = await getGeoByLatLon(this.latLon.lat, this.latLon.lon)
+            this.updateWeather()
+        } else if (this.ip) {
+            this.geoData = await getGeoByIp(this.ip)
+            this.latLon = { lat, lon } = this.geoData.location
+            this.updateWeather()
         } else {
             throw Error('Ip Missing')
         }
     }
-    async setWeather() {
-        // ?lat={lat}&lon={lon}&appid={your api key}
-        let { latitude, longitude } = this.geoData.location
-        if (latitude && longitude) {
-            let data = await get(`${this.weatherUrl}?lat=${this.geoData.location.latitude}&lon=${this.geoData.location.longitude}&exclude=minutely&exclude=daily&appid=${this.weatherApiKey}`)
-            let weather = data.hourly.map(({ weather, clouds }) => {
+    async updateWeather() {
+        if (this.latLon.lat && this.latLon.lon) {
+            let data = await getWeatherByLatLon(this.latLon.lat, this.latLon.lon)
+            let hours = data.hourly.map(({ weather, clouds }) => {
                 return { weather, clouds }
             })
-            this.weather = weather
-            console.log(weather)
+            this.weather = hours.slice(0, 24)
+            this.currentWeather = this.weather[0]
         }
     }
+    startAuto() {
+        this.autoInterval = setInterval(() => {
+            if (this.weather.length > 0) {
+                console.log(this.weather[0])
+            }
+        }, 600)
+    }
+    stopAuto() {
+        clearInterval(this.autoInterval)
+    }
+    startClock() {
+        let date = new Date()
+        let hour = date.getHours()
+        this.clock = setInterval(() => {
+            let newDate = new Date()
+            let newHour = date.getHours()
+            if (newHour != hour) {
+                this.weather = this.weather.slice(1)
+                this.currentWeather = this.weather[0]
+            }
+            date = newDate
+            hour = newHour
+            if (this.weather.length <= 1) {
+                this.updateData()
+            }
+        }, 60000)
+    }
+
 }
 
 module.exports = Unit
