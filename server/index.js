@@ -2,12 +2,12 @@ require('dotenv').config()
 
 const express = require('express')
 const helmet = require('helmet')
-const port = process.env.PORT || 3000
 const bodyParser = require('body-parser')
 var cors = require('cors')
 const requests = require('./utils/requests')
 const things = require('./routes/things')
-const IpGeolocation = require('./model/Unit')
+const port = process.env.PORT || 3000
+
 const Unit = require('./model/Unit')
 const unit = new Unit()
 
@@ -35,8 +35,9 @@ requests.get('https://api.ipify.org?format=json').then(({ ip }) => unit.setIp(ip
 app.use('/things', things)
 require('./routes/home')(app)
 
-
-
+// sockets
+const server = require('http').createServer(app);
+require('./sockets/sockets')(server)
 
 app.listen(port || 3000, () => {
     console.log(`running on localhost:${port}`)
