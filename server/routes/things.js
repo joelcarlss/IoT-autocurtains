@@ -9,6 +9,11 @@ app.get('/', async (req, res, next) => {
     res.send(response)
     next()
 })
+app.post('/', async (req, res, next) => {
+    console.log(req.body)
+    res.send(req.body)
+    next()
+})
 
 app.get('/connect', async (req, res, next) => {
     let response = 'Welcome to things connect'

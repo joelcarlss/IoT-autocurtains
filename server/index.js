@@ -2,9 +2,11 @@ require('dotenv').config()
 
 const express = require('express')
 const helmet = require('helmet')
-const port = process.env.PORT || 3000
 const bodyParser = require('body-parser')
-var cors = require('cors')
+const cors = require('cors')
+
+
+const port = process.env.PORT || 3000
 const requests = require('./utils/requests')
 const things = require('./routes/things')
 
@@ -31,11 +33,9 @@ app.use(helmet())
 // routes
 app.use('/things', things)
 require('./routes/home')(app)
-app.use('/things', things)
 
 
-
-
+// Start server
 app.listen(port || 3000, () => {
     console.log(`running on localhost:${port}`)
     console.log('Press Ctrl-C to terminate...')
