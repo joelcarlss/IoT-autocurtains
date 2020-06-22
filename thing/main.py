@@ -1,16 +1,35 @@
-import urequests
+from mqtt import MQTTClient
+import machine
+import time
+import ujson
+from curtain import Curtain
+
+c = Curtain('P10', 'P11')
 
 
-url = "http://localhost:3000/"
-r = urequests.get(url)
-# r = urequests.post(url, json={"dht_T": 'dht_T', "dht_RH": 'dht_RH'})
-print(r)
-print(r.content)
-print(r.text)
-print(r.content)
-print(r.json())
+def sub_cb(topic, msg):
+    try:
+        percent = int(msg)
+        c.setPercent(percent)
+    except Exception as e:
+        print(e)
 
-# It's mandatory to close response objects as soon as you finished
-# working with them. On MicroPython platforms without full-fledged
-# OS, not doing so may lead to resource leaks and malfunction.
-r.close()
+
+with open('env.json') as fp:
+    data = ujson.load(fp)
+
+print(data["mqtt"]["username"])
+
+client = MQTTClient("solarfruit14", "io.adafruit.com",
+                    user=data["mqtt"]["username"], password=data["mqtt"]["password"], port=1883)
+
+client.set_callback(sub_cb)
+client.connect()
+client.subscribe(topic="joelcarlss/feeds/autocurtain")
+
+print('Sending current value')
+client.publish(topic="joelcarlss/feeds/autocurtain", msg="0")
+print("Listening")
+while True:
+    client.check_msg()
+    time.sleep(2)
