@@ -26,10 +26,10 @@ class MqttHandler {
         });
 
         // mqtt subscriptions
-        this.mqttClient.subscribe(this.topic, { qos: 0 });
+        this.mqttClient.subscribe(this.topic, { qos: 0 }); // Should be done from controller or unit.js
 
         // When a message arrives, console.log it
-        this.mqttClient.on('message', function (topic, message) {
+        this.mqttClient.on('message', function (topic, message) { // Should be done from controller or unit.js
             console.log(message.toString());
         });
 
