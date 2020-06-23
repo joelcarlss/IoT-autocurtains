@@ -22,7 +22,7 @@ app.get('/connect', async (req, res, next) => {
 })
 app.post('/connect', async (req, res, next) => {
     let response = {}
-    let { lat, lon } = req.body
+    let { lat, lon, name } = req.body
     if (lat, lon) {
         controller.connectByLatLon(lat, lon)
     } else {

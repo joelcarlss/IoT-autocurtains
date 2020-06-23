@@ -1,5 +1,7 @@
 require('dotenv').config()
-const { get, getGeoByIp, getGeoByLatLon, getWeatherByLatLon } = require('../utils/requests')
+const MqttHandler = require('../model/MqttHandler')
+const { getGeoByIp, getGeoByLatLon, getWeatherByLatLon } = require('../utils/requests')
+
 class Unit {
     constructor(goDown = true) {
         this.ip = undefined
@@ -11,6 +13,7 @@ class Unit {
         this.milliseconds = 1800000
         this.autoInterval = undefined
         this.clock = undefined
+        this.mqttConnection = undefined
     }
     setMinutes(min) {
         this.milliseconds = min * 60000
@@ -67,7 +70,7 @@ class Unit {
     stopAuto() {
         clearInterval(this.autoInterval)
     }
-    startClock() {
+    startClock() { // Removes 
         let date = new Date()
         let hour = date.getHours()
         this.clock = setInterval(() => {
@@ -83,6 +86,14 @@ class Unit {
                 this.updateData()
             }
         }, 60000)
+    }
+    setMqttConnection() {
+        this.mqttConnection = new MqttHandler()
+        this.mqttConnection.connect()
+        this.mqttConnection.mqttClient.on('message', function (topic, message) {
+            console.log('Unit.js')
+            console.log(message.toString());
+        });
     }
 
 }
