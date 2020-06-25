@@ -10,7 +10,11 @@ module.exports = {
         unit.updateData()
         unit.startAuto()
         unit.startClock()
-        unit.setMqttConnection()
+        // unit.testInterval((value) => {
+        //     console.log(value)
+        // })
+        // unit.setMqttConnection()
+        setTimeout(() => unit.isTimeForMovement(), 3000)
         things.add(unit)
     },
     connectByIp: (ip) => {

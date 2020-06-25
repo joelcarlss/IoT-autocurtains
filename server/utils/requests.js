@@ -2,7 +2,7 @@ const axios = require('axios');
 require('dotenv').config()
 
 
-const weatherUrl = 'https://api.openweathermap.org/data/2.5/onecall'
+const weatherUrl = 'https://api.openweathermap.org/data/2.5/weather'
 const geoUrl = 'https://api.ipgeolocation.io/astronomy'
 const geoApiKey = process.env.IPGEOLOKATION_API_KEY
 const weatherApiKey = process.env.OPENWEATHER_API_KEY
@@ -27,6 +27,6 @@ module.exports = {
         return get(`${geoUrl}?apiKey=${geoApiKey}&lat=${lat}&long=${lon}`)
     },
     getWeatherByLatLon: async (lat, lon) => {
-        return get(`${weatherUrl}?lat=${lat}&lon=${lon}&exclude=minutely&exclude=daily&appid=${weatherApiKey}`)
+        return get(`${weatherUrl}?lat=${lat}&lon=${lon}&appid=${weatherApiKey}`)
     }
 }

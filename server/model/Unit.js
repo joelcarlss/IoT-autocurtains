@@ -6,14 +6,22 @@ class Unit {
     constructor(goDown = true) {
         this.ip = undefined
         this.goDown = goDown
+        this.positionPercent = 0
         this.latLon = {}
         this.geoData = {}
-        this.weather = []
         this.currentWeather = {}
         this.milliseconds = 1800000
         this.autoInterval = undefined
         this.clock = undefined
         this.mqttConnection = undefined
+        this.autoPreferences = {
+            clouds: 70,
+            solarAltitude: {
+                top: 50,
+                bottom: 10,
+                reset: 0
+            }
+        }
     }
     setMinutes(min) {
         this.milliseconds = min * 60000
@@ -38,64 +46,79 @@ class Unit {
     getData() {
         return this.geoData
     }
-    async updateData() {
+    updateData() {
         if (this.latLon.lat && this.latLon.lon) {
-            this.geoData = await getGeoByLatLon(this.latLon.lat, this.latLon.lon)
+            getGeoByLatLon(this.latLon.lat, this.latLon.lon).then(d => this.geoData = d)
             this.updateWeather()
         } else if (this.ip) {
-            this.geoData = await getGeoByIp(this.ip)
-            this.latLon = { lat, lon } = this.geoData.location
-            this.updateWeather()
+            getGeoByIp(this.ip).then((d) => {
+                this.geoData = d
+                this.latLon = { lat, lon } = d.location
+                this.updateWeather()
+            })
         } else {
             throw Error('Ip Missing')
         }
     }
-    async updateWeather() {
+    updateWeather() {
         if (this.latLon.lat && this.latLon.lon) {
-            let data = await getWeatherByLatLon(this.latLon.lat, this.latLon.lon)
-            let hours = data.hourly.map(({ weather, clouds }) => {
-                return { weather, clouds }
+            getWeatherByLatLon(this.latLon.lat, this.latLon.lon).then(({ clouds, weather }) => {
+                this.currentWeather = {
+                    clouds: clouds.all,
+                    weather: weather[0]
+                }
             })
-            this.weather = hours.slice(0, 24)
-            this.currentWeather = this.weather[0]
         }
+    }
+    startClock() { // Removes 
+        this.clock = setInterval(() => {
+            this.updateData()
+        }, 60000)
     }
     startAuto() {
         this.autoInterval = setInterval(() => {
             if (this.weather.length > 0) {
-                console.log(this.weather[0])
+                console.log(this.currentWeather)
             }
-        }, 600)
+        }, this.milliseconds)
     }
     stopAuto() {
         clearInterval(this.autoInterval)
     }
-    startClock() { // Removes 
-        let date = new Date()
-        let hour = date.getHours()
-        this.clock = setInterval(() => {
-            let newDate = new Date()
-            let newHour = date.getHours()
-            if (newHour != hour) {
-                this.weather = this.weather.slice(1)
-                this.currentWeather = this.weather[0]
-            }
-            date = newDate
-            hour = newHour
-            if (this.weather.length <= 1) {
-                this.updateData()
-            }
-        }, 60000)
-    }
     setMqttConnection() {
         this.mqttConnection = new MqttHandler()
         this.mqttConnection.connect()
-        this.mqttConnection.mqttClient.on('message', function (topic, message) {
-            console.log('Unit.js')
-            console.log(message.toString());
-        });
     }
+    testInterval(cb) {
+        setInterval(() => {
+            this.currentWeather
+            cb('hej')
+        }, 60);
+    }
+    isTimeForMovement() {
+        let { sun_altitude, sunrise, sunset, solar_noon, date } = this.geoData
+        let { top, bottom, reset } = this.autoPreferences.solarAltitude
 
+        let solarPositionIsOk = sun_altitude < top && sun_altitude > bottom
+        let timeIsOk = false
+        let currentTime = new Date()
+        let noon = new Date(`${date}T${solar_noon}:00`)
+
+        console.log(currentTime.toString())
+        if (this.goDown) {
+            let set = new Date(`${date}T${sunset}:00`)
+            timeIsOk = currentTime < set && currentTime > noon
+        } else {
+            let rise = new Date(`${date}T${sunrise}:00`)
+            timeIsOk = currentTime > rise && currentTime < noon
+        }
+        return timeIsOk && solarPositionIsOk
+    }
+    solarAltitudePercent() { // calculates current solar altitude percent
+        let { top, bottom, reset } = this.autoPreferences.solarAltitude
+        let mockAltitude = 12
+
+    }
 }
 
 module.exports = Unit
