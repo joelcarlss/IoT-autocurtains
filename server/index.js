@@ -3,18 +3,13 @@ require('dotenv').config()
 const express = require('express')
 const helmet = require('helmet')
 const bodyParser = require('body-parser')
-var cors = require('cors')
+const cors = require('cors')
+
+
+const port = process.env.PORT || 3000
 const requests = require('./utils/requests')
 const things = require('./routes/things')
-<<<<<<< HEAD
-const port = process.env.PORT || 3000
-
-const Unit = require('./model/Unit')
-const unit = new Unit()
-=======
-
->>>>>>> 4564fc990099bf6fbf7186712da526c45cc6d605
-
+const MqttHandler = require('./model/MqttHandler')
 
 const app = express()
 const router = express.Router()
@@ -37,12 +32,13 @@ app.use(helmet())
 // routes
 app.use('/things', things)
 require('./routes/home')(app)
-app.use('/things', things)
 
-// sockets
-const server = require('http').createServer(app);
-require('./sockets/sockets')(server)
+// mqtt
+const mqtt = new MqttHandler()
+mqtt.connect()
+mqtt.sendMessage("20")
 
+// Start server
 app.listen(port || 3000, () => {
     console.log(`running on localhost:${port}`)
     console.log('Press Ctrl-C to terminate...')
