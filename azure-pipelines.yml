@@ -11,12 +11,18 @@ pool:
 
 steps:
 - task: NodeTool@0
+  enabled: true
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
+
+  - script: |
+    ls
+  displayName: 'test'
 
 - script: |
     cd server
     npm install
     npm run build
   displayName: 'npm install and build'
+  enabled: false
