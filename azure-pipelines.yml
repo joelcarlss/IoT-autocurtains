@@ -19,10 +19,11 @@ steps:
 - script: |
     ls
   displayName: 'test'
+  enabled: false
 
 - script: |
     cd server
     npm install
     npm start
   displayName: 'npm install and build'
-  enabled: false
+  enabled: true
