@@ -11,7 +11,7 @@ pool:
 
 steps:
 - task: NodeTool@0
-  enabled: true
+  enabled: false
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
@@ -26,3 +26,16 @@ steps:
     npm install
   displayName: 'npm install and build'
   enabled: true
+
+  # Archive files
+# Compress files into .7z, .tar.gz, or .zip
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.BinariesDirectory)' 
+    includeRootFolder: true 
+    archiveType: 'zip' # Options: zip, 7z, tar, wim
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip' 
+    replaceExistingArchive: true 
+    verbose: true # Optional
+    #quiet: # Optional
+
