@@ -24,6 +24,5 @@ steps:
 - script: |
     cd server
     npm install
-    npm start
   displayName: 'npm install and build'
   enabled: true
