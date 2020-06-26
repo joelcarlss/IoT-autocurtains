@@ -114,10 +114,9 @@ class Unit {
         }
         return timeIsOk && solarPositionIsOk
     }
-    solarAltitudePercent() { // calculates current solar altitude percent
+    solarAltitudePercent() { // TODO: Calculate current solar altitude percent
         let { top, bottom, reset } = this.autoPreferences.solarAltitude
         let mockAltitude = 12
-
     }
 }
 
