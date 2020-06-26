@@ -15,14 +15,6 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
-- task: AzureFunctionApp@1
-  inputs:
-    azureSubscription: 'Visual Studio Enterprise'
-    appType: 'functionAppLinux'
-    appName: 'dfjkhdsfajjoel'
-    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
-    runtimeStack: 'DOCKER|microsoft/azure-functions-node8:2.0'
-    startUpCommand: 'node index.js'
 
 - script: |
     ls
@@ -47,3 +39,11 @@ steps:
     verbose: true # Optional
     #quiet: # Optional
 
+- task: AzureFunctionApp@1
+  inputs:
+    azureSubscription: 'Visual Studio Enterprise'
+    appType: 'functionAppLinux'
+    appName: 'dfjkhdsfajjoel'
+    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+    runtimeStack: 'DOCKER|microsoft/azure-functions-node8:2.0'
+    startUpCommand: 'node index.js'
