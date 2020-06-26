@@ -11,9 +11,6 @@ const requests = require('./utils/requests')
 const things = require('./routes/things')
 const MqttHandler = require('./model/MqttHandler')
 
-
-
-
 const app = express()
 const router = express.Router()
 
@@ -40,7 +37,6 @@ require('./routes/home')(app)
 const mqtt = new MqttHandler()
 mqtt.connect()
 mqtt.sendMessage("20")
-
 
 // Start server
 app.listen(port || 3000, () => {
