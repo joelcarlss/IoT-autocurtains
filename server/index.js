@@ -9,7 +9,6 @@ const cors = require('cors')
 const port = process.env.PORT || 3000
 const requests = require('./utils/requests')
 const things = require('./routes/things')
-const MqttHandler = require('./model/MqttHandler')
 
 const app = express()
 const router = express.Router()
@@ -29,11 +28,6 @@ app.use(helmet())
 // routes
 app.use('/things', things)
 require('./routes/home')(app)
-
-// mqtt
-const mqtt = new MqttHandler()
-mqtt.connect()
-mqtt.sendMessage("20")
 
 // Start server
 app.listen(port, () => {

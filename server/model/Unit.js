@@ -6,20 +6,21 @@ class Unit {
     constructor(goDown = true) {
         this.ip = undefined
         this.goDown = goDown
-        this.positionPercent = 0
+        this.currentPercent = 0
         this.latLon = {}
         this.geoData = {}
         this.currentWeather = {}
-        this.milliseconds = 1800000
+        this.milliseconds = 180000
         this.autoInterval = undefined
         this.clock = undefined
-        this.mqttConnection = undefined
+        this.mqtt = undefined
         this.autoPreferences = {
             clouds: 70,
+            resetTo: 0,
             solarAltitude: {
                 top: 50,
                 bottom: 10,
-                reset: 0
+                resetAt: 0
             }
         }
     }
@@ -70,15 +71,29 @@ class Unit {
             })
         }
     }
-    startClock() { // Removes 
+    startClock() {
         this.clock = setInterval(() => {
             this.updateData()
         }, 60000)
     }
-    startAuto() {
+    startAutoPosition() {
+        console.log('Inteval started')
         this.autoInterval = setInterval(() => {
-            if (this.weather.length > 0) {
-                console.log(this.currentWeather)
+            console.log('Current Solar Altitude: ' + this.geoData.sun_altitude)
+            console.log('Current Time: ' + Date.now())
+            let calcPercent = this.solarAltitudePercent()
+            if (this.isTimeForMovement()) {
+                console.log('Time to move')
+                if (this.goDown && calcPercent >= this.currentPercent) {
+                    console.log('Sending message: ' + calcPercent)
+                    this.sendMessage(calcPercent)
+                } else if (!this.goDown && calcPercent <= this.currentPercent) {
+                    console.log('Sending message: ' + calcPercent)
+                    this.sendMessage(calcPercent)
+                }
+            } else if (this.goDown && this.autoPreferences.solarAltitude.resetAt <= this.geoData.sun_altitude) {
+                console.log('Reseting, Sending message: ' + this.autoPreferences.resetTo)
+                this.sendMessage(this.autoPreferences.resetTo)
             }
         }, this.milliseconds)
     }
@@ -86,25 +101,30 @@ class Unit {
         clearInterval(this.autoInterval)
     }
     setMqttConnection() {
-        this.mqttConnection = new MqttHandler()
-        this.mqttConnection.connect()
+        this.mqtt = new MqttHandler()
+        this.mqtt.connect()
+        this.mqtt.onMessage((msg) => this.setCurrentPercent(msg))
     }
-    testInterval(cb) {
-        setInterval(() => {
-            this.currentWeather
-            cb('hej')
-        }, 60);
+    sendMessage(message) {
+        if (this.mqtt) {
+            this.mqtt.sendMessage(message)
+        }
+    }
+    setCurrentPercent(message) {
+        let num = Number(message)
+        if (!isNaN(num)) {
+            this.currentPercent = num
+        }
     }
     isTimeForMovement() {
         let { sun_altitude, sunrise, sunset, solar_noon, date } = this.geoData
-        let { top, bottom, reset } = this.autoPreferences.solarAltitude
+        let { top, bottom } = this.autoPreferences.solarAltitude
 
         let solarPositionIsOk = sun_altitude < top && sun_altitude > bottom
         let timeIsOk = false
         let currentTime = new Date()
         let noon = new Date(`${date}T${solar_noon}:00`)
 
-        console.log(currentTime.toString())
         if (this.goDown) {
             let set = new Date(`${date}T${sunset}:00`)
             timeIsOk = currentTime < set && currentTime > noon
@@ -115,8 +135,15 @@ class Unit {
         return timeIsOk && solarPositionIsOk
     }
     solarAltitudePercent() { // TODO: Calculate current solar altitude percent
-        let { top, bottom, reset } = this.autoPreferences.solarAltitude
-        let mockAltitude = 12
+        let { sun_altitude } = this.geoData
+        let { top, bottom } = this.autoPreferences.solarAltitude
+        let percent = (sun_altitude - bottom) / (top - bottom) * 100 // Calculate the percent of how close altitude is to top variable
+        percent = 100 - percent // Reverse so the percent is for how close to down the sun is.
+        if (percent > 100) {
+            percent = 100
+        } else if (percent < 0) {
+            percent = 0
+        }
     }
 }
 

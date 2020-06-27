@@ -7,14 +7,6 @@ module.exports = {
     connectByLatLon: (lat, lon) => {
         let unit = new Unit()
         unit.setLatLon(lat, lon)
-        unit.updateData()
-        unit.startAuto()
-        unit.startClock()
-        // unit.testInterval((value) => {
-        //     console.log(value)
-        // })
-        // unit.setMqttConnection()
-        setTimeout(() => unit.isTimeForMovement(), 3000)
         things.add(unit)
     },
     connectByIp: (ip) => {

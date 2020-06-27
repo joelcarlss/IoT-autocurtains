@@ -28,18 +28,18 @@ class MqttHandler {
         // mqtt subscriptions
         this.mqttClient.subscribe(this.topic, { qos: 0 }); // Should be done from controller or unit.js
 
-        // When a message arrives, console.log it
-        this.mqttClient.on('message', function (topic, message) { // Should be done from controller or unit.js
-            console.log(message.toString());
-        });
-
         this.mqttClient.on('close', () => {
             console.log(`mqtt client disconnected`);
         });
     }
 
+    onMessage(callback) {
+        this.mqttClient.on('message', function (topic, message) { // Should be done from controller or unit.js
+            callback(message.toString())
+        });
+    }
 
-    // Sends a mqtt message to topic: mytopic
+    // Sends a mqtt message to topic
     sendMessage(message) {
         this.mqttClient.publish(this.topic, message);
     }
