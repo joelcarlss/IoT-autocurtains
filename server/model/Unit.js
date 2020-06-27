@@ -77,14 +77,15 @@ class Unit {
     }
     startAutoPosition() {
         console.log('Inteval started')
+        this.sendMessage(this.solarAltitudePercent())
         this.autoInterval = setInterval(() => {
             this.runAutoPositioner()
         }, this.milliseconds)
     }
     runAutoPositioner() {
-        let calcPercent = this.solarAltitudePercent()
         if (this.isTimeForMovement()) {
             this.updateData().then(() => {
+                let calcPercent = this.solarAltitudePercent()
                 console.log('Time to move')
                 console.log('Current Solar Altitude: ' + this.geoData.sun_altitude)
                 if (this.goDown && calcPercent >= this.currentPercent) {
@@ -141,12 +142,15 @@ class Unit {
         let { sun_altitude } = this.geoData
         let { top, bottom } = this.autoPreferences.solarAltitude
         let percent = (sun_altitude - bottom) / (top - bottom) * 100 // Calculate the percent of how close altitude is to top variable
-        percent = 100 - percent // Reverse so the percent is for how close to down the sun is.
+        if (this.goDown) {
+            percent = 100 - percent // Reverse so the percent is for how close to down the sun is.
+        }
         if (percent > 100) {
             percent = 100
         } else if (percent < 0) {
             percent = 0
         }
+        return percent
     }
 }
 

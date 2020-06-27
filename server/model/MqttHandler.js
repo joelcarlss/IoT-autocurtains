@@ -35,6 +35,7 @@ class MqttHandler {
 
     onMessage(callback) {
         this.mqttClient.on('message', function (topic, message) { // Should be done from controller or unit.js
+            console.log('New Message: ' + message.toString())
             callback(message.toString())
         });
     }
