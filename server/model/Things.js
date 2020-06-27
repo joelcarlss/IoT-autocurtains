@@ -1,3 +1,5 @@
+const { ruleConditionOperators } = require("node-hue-api/lib/model")
+
 module.exports = class Things {
     constructor() {
         this.units = []
@@ -13,10 +15,10 @@ module.exports = class Things {
         return this.units
     }
     startUnit(unit) {
-        unit.updateData()
-        unit.startClock()
         unit.setMqttConnection()
+        unit.runAutoPositioner()
         unit.startAutoPosition()
+        unit.updateData()
     }
 
 }

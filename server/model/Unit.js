@@ -1,13 +1,18 @@
 require('dotenv').config()
 const MqttHandler = require('../model/MqttHandler')
 const { getGeoByIp, getGeoByLatLon, getWeatherByLatLon } = require('../utils/requests')
+const { contentSecurityPolicy } = require('helmet')
+const { connect } = require('../routes/things')
 
 class Unit {
     constructor(goDown = true) {
         this.ip = undefined
         this.goDown = goDown
         this.currentPercent = 0
-        this.latLon = {}
+        this.latLon = {
+            lat: undefined,
+            lon: undefined
+        }
         this.geoData = {}
         this.currentWeather = {}
         this.milliseconds = 180000
@@ -30,14 +35,6 @@ class Unit {
     getMinutes() {
         this.milliseconds = min / 60000
     }
-    async setIp(ipAdress) {
-        let data = await getGeoByIp(ipAdress)
-        if (data) {
-            this.ip = ipAdress
-        } else {
-            throw Error('Invalid Ip')
-        }
-    }
     async setLatLon(lat, lon) {
         this.latLon = { lat, lon }
     }
@@ -47,43 +44,49 @@ class Unit {
     getData() {
         return this.geoData
     }
-    updateData() {
+    async updateData() {
+        console.log('1')
+        let geoData
         if (this.latLon.lat && this.latLon.lon) {
-            getGeoByLatLon(this.latLon.lat, this.latLon.lon).then(d => this.geoData = d)
-            this.updateWeather()
+            console.log('latlon')
+            geoData = await getGeoByLatLon(this.latLon.lat, this.latLon.lon)
         } else if (this.ip) {
-            getGeoByIp(this.ip).then((d) => {
-                this.geoData = d
-                this.latLon = { lat, lon } = d.location
-                this.updateWeather()
-            })
+            console.log('ip')
+            geoData = await getGeoByIp(this.ip)
+            this.latLon = {
+                lat: geoData.location.latitude,
+                lon: geoData.location.longitude
+            }
         } else {
             throw Error('Ip Missing')
         }
+        this.geoData = geoData
+        this.currentWeather = this.getWeather(this.latLon.lat, this.latLon.lon)
+        return Promise.all([this.geoData, this.currentWeather]).then(() => { return true })
     }
-    updateWeather() {
-        if (this.latLon.lat && this.latLon.lon) {
-            getWeatherByLatLon(this.latLon.lat, this.latLon.lon).then(({ clouds, weather }) => {
-                this.currentWeather = {
-                    clouds: clouds.all,
-                    weather: weather[0]
-                }
-            })
+    async getWeather(lat, lon) {
+        if (lat && lon) {
+            let { clouds, weather } = await getWeatherByLatLon(lat, lon)
+            return {
+                clouds: clouds.all,
+                weather: weather[0]
+            }
+        } else {
+            throw Error('No latitude or longitude')
         }
-    }
-    startClock() {
-        this.clock = setInterval(() => {
-            this.updateData()
-        }, 60000)
     }
     startAutoPosition() {
         console.log('Inteval started')
         this.autoInterval = setInterval(() => {
-            console.log('Current Solar Altitude: ' + this.geoData.sun_altitude)
-            console.log('Current Time: ' + Date.now())
-            let calcPercent = this.solarAltitudePercent()
-            if (this.isTimeForMovement()) {
+            this.runAutoPositioner()
+        }, this.milliseconds)
+    }
+    runAutoPositioner() {
+        let calcPercent = this.solarAltitudePercent()
+        if (this.isTimeForMovement()) {
+            this.updateData().then(() => {
                 console.log('Time to move')
+                console.log('Current Solar Altitude: ' + this.geoData.sun_altitude)
                 if (this.goDown && calcPercent >= this.currentPercent) {
                     console.log('Sending message: ' + calcPercent)
                     this.sendMessage(calcPercent)
@@ -91,11 +94,11 @@ class Unit {
                     console.log('Sending message: ' + calcPercent)
                     this.sendMessage(calcPercent)
                 }
-            } else if (this.goDown && this.autoPreferences.solarAltitude.resetAt <= this.geoData.sun_altitude) {
-                console.log('Reseting, Sending message: ' + this.autoPreferences.resetTo)
-                this.sendMessage(this.autoPreferences.resetTo)
-            }
-        }, this.milliseconds)
+            })
+        } else if (this.goDown && this.autoPreferences.solarAltitude.resetAt <= this.geoData.sun_altitude) {
+            console.log('Reseting, Sending message: ' + this.autoPreferences.resetTo)
+            this.sendMessage(this.autoPreferences.resetTo)
+        }
     }
     stopAuto() {
         clearInterval(this.autoInterval)

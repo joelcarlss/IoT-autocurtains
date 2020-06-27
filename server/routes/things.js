@@ -34,5 +34,6 @@ app.post('/connect', async (req, res, next) => {
     res.send('response')
     next()
 })
-controller.connectByLatLon(56.690318, 16.333079)
+// controller.connectByLatLon(56.690318, 16.333079)
+controller.connectByIp('83.251.26.37')
 module.exports = app

@@ -11,10 +11,8 @@ module.exports = {
     },
     connectByIp: (ip) => {
         let unit = new Unit()
-        unit.setIp(ip)
-        unit.updateData()
-        unit.startAuto()
-        unit.startClock()
+        unit.ip = ip
+        console.log(unit.ip)
         things.add(unit)
     },
     getUnits: () => {
