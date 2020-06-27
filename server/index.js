@@ -39,7 +39,7 @@ mqtt.connect()
 mqtt.sendMessage("20")
 
 // Start server
-app.listen(port || 3000, () => {
+app.listen(port, () => {
     console.log(`running on localhost:${port}`)
     console.log('Press Ctrl-C to terminate...')
 })
