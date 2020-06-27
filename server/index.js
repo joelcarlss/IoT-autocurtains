@@ -26,9 +26,6 @@ app.use(bodyParser.json())
 // Helmet for security
 app.use(helmet())
 
-// const hue = new Hue()
-// hue.connect()
-
 // routes
 app.use('/things', things)
 require('./routes/home')(app)
