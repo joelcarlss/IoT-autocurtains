@@ -6,8 +6,8 @@ import time
 
 class Joystick:
     # neutral position (0-1023)
-    xNeutral = 490
-    yNeutral = 467
+    xNeutral = 450
+    yNeutral = 450
 
     def __init__(self, xPin, yPin, zPin):
         adc = ADC(bits=10)

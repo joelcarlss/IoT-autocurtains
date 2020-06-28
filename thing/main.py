@@ -22,7 +22,8 @@ def sub_cb(topic, msg):
 with open('env.json') as fp:
     data = ujson.load(fp)
 
-print(data["mqtt"]["username"])
+# TODO: Fix memory error in MQTT
+# OSError: [Errno -1] ERR_MEM
 
 client = MQTTClient("solarfruit14", "io.adafruit.com",
                     user=data["mqtt"]["username"], password=data["mqtt"]["password"], port=1883)
@@ -34,6 +35,6 @@ client.subscribe(topic="joelcarlss/feeds/autocurtain")
 print('Sending current value')
 client.publish(topic="joelcarlss/feeds/autocurtain", msg="0")
 print("Listening")
-while True:
+while True:  # TODO: integrate manual control, button or joystick
     client.check_msg()
     time.sleep(2)
