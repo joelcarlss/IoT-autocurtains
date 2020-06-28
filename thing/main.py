@@ -3,11 +3,15 @@ import machine
 import time
 import ujson
 from curtain import Curtain
+from stepper import Motor
 
-c = Curtain('P10', 'P11')
+# step, dir, enable
+m = Motor('P6', 'P7', 'P8')
+c = Curtain(m)
 
 
 def sub_cb(topic, msg):
+    print(msg)
     try:
         percent = int(msg)
         c.setPercent(percent)

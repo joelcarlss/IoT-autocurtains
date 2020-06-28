@@ -4,6 +4,12 @@ const express = require('express')
 const helmet = require('helmet')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const Mqtt = require('./model/MqttHandler')
+
+const mqtt = new Mqtt()
+mqtt.connect()
+mqtt.sendMessage('0')
+
 
 
 const port = process.env.PORT || 3000

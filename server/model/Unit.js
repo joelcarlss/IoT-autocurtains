@@ -24,7 +24,7 @@ class Unit {
             resetTo: 0,
             solarAltitude: {
                 top: 50,
-                bottom: 10,
+                bottom: 20,
                 resetAt: 0
             }
         }
@@ -45,13 +45,13 @@ class Unit {
         return this.geoData
     }
     async updateData() {
-        console.log('1')
+        console.log('Update Data runned')
         let geoData
         if (this.latLon.lat && this.latLon.lon) {
-            console.log('latlon')
+            console.log('Updating by lat lon')
             geoData = await getGeoByLatLon(this.latLon.lat, this.latLon.lon)
         } else if (this.ip) {
-            console.log('ip')
+            console.log('Updating by ip adress')
             geoData = await getGeoByIp(this.ip)
             this.latLon = {
                 lat: geoData.location.latitude,
@@ -61,11 +61,13 @@ class Unit {
             throw Error('Ip Missing')
         }
         this.geoData = geoData
+        console.log(geoData)
         this.currentWeather = this.getWeather(this.latLon.lat, this.latLon.lon)
         return Promise.all([this.geoData, this.currentWeather]).then(() => { return true })
     }
     async getWeather(lat, lon) {
         if (lat && lon) {
+            console.log('Updating weather')
             let { clouds, weather } = await getWeatherByLatLon(lat, lon)
             return {
                 clouds: clouds.all,
@@ -77,8 +79,8 @@ class Unit {
     }
     startAutoPosition() {
         console.log('Inteval started')
-        this.sendMessage(this.solarAltitudePercent())
         this.autoInterval = setInterval(() => {
+            console.log('AutoPosition lap')
             this.runAutoPositioner()
         }, this.milliseconds)
     }
@@ -110,8 +112,9 @@ class Unit {
         this.mqtt.onMessage((msg) => this.setCurrentPercent(msg))
     }
     sendMessage(message) {
+        let string = message.toString()
         if (this.mqtt) {
-            this.mqtt.sendMessage(message)
+            this.mqtt.sendMessage(string)
         }
     }
     setCurrentPercent(message) {
