@@ -5,6 +5,7 @@ const helmet = require('helmet')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const Mqtt = require('./model/MqttHandler')
+const controller = require('./controllers/things')
 
 const mqtt = new Mqtt()
 mqtt.connect()
@@ -34,6 +35,10 @@ app.use(helmet())
 // routes
 app.use('/things', things)
 require('./routes/home')(app)
+
+// Current start 
+// controller.connectByLatLon(process.env.LATITUDE, process.env.LONGITUDE)
+// controller.connectByIp(process.env.IP_ADDRESS)
 
 // Start server
 app.listen(port, () => {

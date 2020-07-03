@@ -9,8 +9,8 @@ class Motor:
         self.dir = Pin(dir_pin, mode=Pin.OUT)
         self.enb = Pin(enable_pin, mode=Pin.OUT)
 
-        self.step_time = 1200  # us 20 standard
-        self.steps_per_rev = 400
+        self.step_time = 600  # us 20 standard
+        self.steps_per_rev = 800
         self.dir.value(0)
 
     def power_on(self):

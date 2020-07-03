@@ -1,7 +1,9 @@
 from network import WLAN
 import machine
 import ujson
+import pycom
 
+pycom.pybytes_on_boot(False)
 
 with open('env.json') as fp:
     data = ujson.load(fp)
