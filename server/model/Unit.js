@@ -5,26 +5,27 @@ const { contentSecurityPolicy } = require('helmet')
 const { connect } = require('../routes/things')
 
 class Unit {
-    constructor(goDown = true) {
+    constructor(goDown = false) {
+        this.id = 'hej'
         this.ip = undefined
         this.goDown = goDown
-        this.currentPercent = 0
+        this.currentPercent = 100
         this.latLon = {
             lat: undefined,
             lon: undefined
         }
         this.geoData = {}
         this.currentWeather = {}
-        this.milliseconds = 180000
+        this.milliseconds = 10000// 180000
         this.autoInterval = undefined
         this.clock = undefined
         this.mqtt = undefined
         this.autoPreferences = {
             clouds: 70,
-            resetTo: 0,
+            resetTo: 3,
             solarAltitude: {
                 top: 50,
-                bottom: 20,
+                bottom: 1,
                 resetAt: 0
             }
         }
@@ -62,7 +63,8 @@ class Unit {
         }
         this.geoData = geoData
         console.log(geoData)
-        this.currentWeather = this.getWeather(this.latLon.lat, this.latLon.lon)
+        this.currentWeather = await this.getWeather(this.latLon.lat, this.latLon.lon)
+        console.log(this.currentWeather)
         return Promise.all([this.geoData, this.currentWeather]).then(() => { return true })
     }
     async getWeather(lat, lon) {
@@ -98,9 +100,13 @@ class Unit {
                     this.sendMessage(calcPercent)
                 }
             })
-        } else if (this.goDown && this.autoPreferences.solarAltitude.resetAt <= this.geoData.sun_altitude) {
-            console.log('Reseting, Sending message: ' + this.autoPreferences.resetTo)
-            this.sendMessage(this.autoPreferences.resetTo)
+        } else if (this.geoData.sun_altitude) {
+            if (this.goDown &&
+                this.autoPreferences.solarAltitude.resetAt <= this.geoData.sun_altitude &&
+                this.currentPercent < this.autoPreferences.resetTo) {
+                console.log('Reseting, Sending message: ' + this.autoPreferences.resetTo)
+                this.sendMessage(this.autoPreferences.resetTo)
+            }
         }
     }
     stopAuto() {
@@ -140,19 +146,20 @@ class Unit {
             timeIsOk = currentTime > rise && currentTime < noon
         }
         return timeIsOk && solarPositionIsOk
+        // return true // MOCK
     }
     solarAltitudePercent() { // TODO: Calculate current solar altitude percent
         let { sun_altitude } = this.geoData
         let { top, bottom } = this.autoPreferences.solarAltitude
         let percent = (sun_altitude - bottom) / (top - bottom) * 100 // Calculate the percent of how close altitude is to top variable
-        if (this.goDown) {
-            percent = 100 - percent // Reverse so the percent is for how close to down the sun is.
-        }
+        percent = 100 - percent // Reverse so the percent is for how close to down the sun is.
         if (percent > 100) {
             percent = 100
         } else if (percent < 0) {
             percent = 0
         }
+        percent = Math.round(percent)
+        console.log(percent)
         return percent
     }
 }

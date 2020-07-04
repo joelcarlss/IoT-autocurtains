@@ -9,7 +9,6 @@ const controller = require('./controllers/things')
 
 const mqtt = new Mqtt()
 mqtt.connect()
-mqtt.sendMessage('0')
 
 
 
@@ -37,7 +36,7 @@ app.use('/things', things)
 require('./routes/home')(app)
 
 // Current start 
-// controller.connectByLatLon(process.env.LATITUDE, process.env.LONGITUDE)
+controller.connectByLatLon(process.env.LATITUDE, process.env.LONGITUDE)
 // controller.connectByIp(process.env.IP_ADDRESS)
 
 // Start server

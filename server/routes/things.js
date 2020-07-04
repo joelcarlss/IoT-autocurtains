@@ -34,4 +34,6 @@ app.post('/connect', async (req, res, next) => {
     res.send('response')
     next()
 })
+app.post('up', (req, res, next) => {
+})
 module.exports = app
