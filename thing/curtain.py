@@ -5,8 +5,8 @@ import time
 class Curtain:
 
     def __init__(self, motor):
-        self.bottom_position = 100
-        self.current_position = 1
+        self.bottom_position = 27
+        self.current_position = 27
         self.motor = motor
         self.motor.power_off()
 
